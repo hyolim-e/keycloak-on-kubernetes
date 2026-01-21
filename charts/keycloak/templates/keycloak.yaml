@@ -1,0 +1,48 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: {{ include "keycloak.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  instances: {{ .Values.instances }}
+  image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+  bootstrapAdmin:
+    {{- if .Values.bootstrapAdmin.existingSecret }}
+    secret:
+      name: {{ .Values.bootstrapAdmin.existingSecret | quote }}
+    {{- else }}
+    user: {{ .Values.bootstrapAdmin.user | quote }}
+    password: {{ .Values.bootstrapAdmin.password | quote }}
+    {{- end }}
+  hostname:
+    hostname: {{ .Values.hostname.hostname | quote }}
+    strict: {{ .Values.hostname.strict }}
+    strictBackchannel: {{ .Values.hostname.strictBackchannel }}
+  ingress:
+    enabled: {{ .Values.ingress.enabled }}
+    {{- with .Values.ingress.className }}
+    className: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
+    annotations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  db:
+    vendor: {{ .Values.db.vendor }}
+    host: {{ if .Values.postgresql.enabled }}{{ include "keycloak.fullname" . }}-postgresql{{ else }}{{ .Values.db.host | quote }}{{ end }}
+    database: {{ if .Values.postgresql.enabled }}{{ .Values.postgresql.auth.database | quote }}{{ else }}{{ .Values.db.database | quote }}{{ end }}
+    usernameSecret:
+      name: {{ .Values.db.usernameSecret.name }}
+      key: {{ .Values.db.usernameSecret.key }}
+    passwordSecret:
+      name: {{ .Values.db.passwordSecret.name }}
+      key: {{ .Values.db.passwordSecret.key }}
+  {{- if .Values.additionalOptions }}
+  additionalOptions:
+    {{- range .Values.additionalOptions }}
+    - name: {{ .name }}
+      value: {{ .value | quote }}
+    {{- end }}
+  {{- end }}

@@ -1,0 +1,48 @@
+## Operator Image Settings
+image:
+  ## @param image.registry Keycloak Operator image registry
+  registry: quay.io
+  ## @param image.repository Keycloak Operator image repository
+  repository: keycloak/keycloak-operator
+  ## @param image.tag Keycloak Operator image tag
+  tag: 26.0.1
+  ## @param image.pullPolicy Keycloak Operator image pull policy
+  pullPolicy: IfNotPresent
+  ## @param image.pullSecrets Keycloak Operator image pull secrets
+  pullSecrets: []
+
+## Operator Deployment Settings
+
+## @param replicaCount Number of Keycloak Operator replicas
+replicaCount: 1
+
+## @param watchNamespaces The namespaces that the operator should watch (empty for all namespaces)
+watchNamespaces: ""
+
+## @param rbac.create Whether to create RBAC resources
+rbac:
+  create: true
+
+## @param resources The resources limits/requests for the operator container
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+## ServiceAccount configuration
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  create: true
+  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the fullname template
+  name: ""
+  ## @param serviceAccount.annotations Annotations to add to the ServiceAccount
+  annotations: {}
+
+## Service configuration
+service:
+  ## @param service.type Service type (ClusterIP, NodePort, LoadBalancer)
+  type: ClusterIP

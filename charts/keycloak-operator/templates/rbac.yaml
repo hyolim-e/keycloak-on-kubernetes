@@ -1,0 +1,101 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "keycloak-operator.fullname" . }}-clusterrole
+  labels:
+    {{- include "keycloak-operator.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["config.openshift.io"]
+    resources: ["ingresses"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "keycloak-operator.fullname" . }}-realm-import-ctrl
+  labels:
+    {{- include "keycloak-operator.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["k8s.keycloak.org"]
+    resources: ["keycloakrealmimports", "keycloakrealmimports/status", "keycloakrealmimports/finalizers"]
+    verbs: ["get", "list", "watch", "patch", "update", "create", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "delete", "get", "list", "patch", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "keycloak-operator.fullname" . }}-ctrl
+  labels:
+    {{- include "keycloak-operator.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["k8s.keycloak.org"]
+    resources: ["keycloaks", "keycloaks/status", "keycloaks/finalizers"]
+    verbs: ["get", "list", "watch", "patch", "update", "create", "delete"]
+  - apiGroups: ["", "apps", "monitoring.coreos.com", "networking.k8s.io"]
+    resources: ["services", "servicemonitors", "networkpolicies", "statefulsets", "ingresses", "secrets"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "keycloak-operator.fullname" . }}-role
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "keycloak-operator.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "services", "pods", "pods/log"]
+    verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
+  - apiGroups: ["batch", "networking.k8s.io", "monitoring.coreos.com"]
+    resources: ["jobs", "ingresses", "servicemonitors"]
+    verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "keycloak-operator.fullname" . }}-clusterrole-binding
+  labels:
+    {{- include "keycloak-operator.labels" . | nindent 4 }}
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: {{ include "keycloak-operator.fullname" . }}-clusterrole
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "keycloak-operator.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+---
+{{- $roleBindings := list 
+  (dict "suffix" "role-binding" "ref" (printf "%s-role" (include "keycloak-operator.fullname" .)) "kind" "Role")
+  (dict "suffix" "realm-import-ctrl-binding" "ref" (printf "%s-realm-import-ctrl" (include "keycloak-operator.fullname" .)) "kind" "ClusterRole")
+  (dict "suffix" "ctrl-binding" "ref" (printf "%s-ctrl" (include "keycloak-operator.fullname" .)) "kind" "ClusterRole")
+  (dict "suffix" "view-binding" "ref" "view" "kind" "ClusterRole")
+}}
+{{- range $roleBindings }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "keycloak-operator.fullname" $ }}-{{ .suffix }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "keycloak-operator.labels" $ | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: {{ .kind }}
+  name: {{ .ref }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "keycloak-operator.serviceAccountName" $ }}
+    namespace: {{ $.Release.Namespace }}
+---
+{{- end }}
+{{- end -}}

@@ -1,0 +1,98 @@
+## @param instances Number of Keycloak replicas to deploy
+instances: 1
+
+## Keycloak Image Settings
+image:
+  ## @param image.registry Keycloak image registry
+  registry: quay.io
+  ## @param image.repository Keycloak image repository
+  repository: keycloak/keycloak
+  ## @param image.tag Keycloak image tag
+  tag: 26.5.1
+  ## @param image.pullPolicy Keycloak image pull policy
+  pullPolicy: IfNotPresent
+  ## @param image.pullSecrets Keycloak image pull secrets
+  pullSecrets: []
+
+## @section Keycloak Admin Settings
+
+bootstrapAdmin:
+  ## @param bootstrapAdmin.user Initial admin username (ignored if existingSecret is set)
+  user: admin
+  ## @param bootstrapAdmin.password Initial admin password (ignored if existingSecret is set)
+  password: admin-password
+  
+  ## @param bootstrapAdmin.existingSecret Reference an existing Secret for admin credentials
+  ## The secret must contain 'username' and 'password' keys.
+  existingSecret: ""
+
+## Keycloak Ingress Configuration (Managed by Operator)
+## ref: https://www.keycloak.org/server/operator#_specifying_ingress_options
+ingress:
+  ## @param ingress.enabled Enable or disable the ingress managed by the operator
+  enabled: true
+  ## @param ingress.className Ingress class name (e.g., nginx, alb)
+  className: "nginx"
+  ## @param ingress.annotations Additional annotations for the operator-managed ingress
+  ## e.g:
+  ## annotations:
+  ##   nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  annotations: {}
+
+## Keycloak Realm Import Settings
+## ref: https://www.keycloak.org/server/operator#_importing_a_realm
+realmImport:
+  ## @param realmImport.enabled Create a KeycloakRealmImport resource
+  enabled: false
+  ## @param realmImport.content The realm configuration. 
+  ## You can provide this as a YAML object below, or inject a JSON file 
+  ## using: helm install ... --set-file realmImport.content=realm-export.json
+  ## e.g:
+  ## content:
+  ##   realm: "my-realm"
+  ##   enabled: true
+  content: {}
+
+## Keycloak Network & Hostname Configuration
+hostname:
+  ## @param hostname.hostname Keycloak hostname (Required for v26+)
+  hostname: sso.example.com
+  ## @param hostname.strict Enable strict hostname checking
+  strict: true
+  ## @param hostname.strictBackchannel Enable strict backchannel hostname checking
+  strictBackchannel: false
+
+## @section Database Settings
+
+## Keycloak Database Configuration (External)
+db:
+  ## @param db.vendor Database vendor (postgres, mysql, mariadb, etc.)
+  vendor: postgres
+  ## @param db.host Database host (Required if postgresql.enabled=false)
+  host: ""
+  ## @param db.database Database name
+  database: keycloak
+  usernameSecret:
+    name: keycloak-db-secret
+    key: username
+  passwordSecret:
+    name: keycloak-db-secret
+    key: password
+
+## Development PostgreSQL Settings
+## @param postgresql.enabled Deploy an ephemeral PostgreSQL pod for development/testing
+postgresql:
+  enabled: false
+  ## @param postgresql.image PostgreSQL image
+  image: postgres:16-alpine
+  ## Development Database Auth
+  auth:
+    ## @param postgresql.auth.database Name of the database to create
+    database: keycloak
+    ## @param postgresql.auth.username Username for the development database
+    username: keycloak
+    ## @param postgresql.auth.password Password for the development database
+    password: "keycloak-pass"
+
+## @param additionalOptions Additional Quarkus-based CLI options
+additionalOptions: []
