@@ -1,0 +1,24 @@
+apiVersion: v1
+entries:
+  keycloak:
+  - apiVersion: v2
+    appVersion: 26.0.1
+    created: "2026-01-21T14:09:47.331118333Z"
+    description: A Helm chart to deploy a Keycloak instance managed by the Keycloak
+      Operator
+    digest: 57de21765983ccd586747a989f6ecd411405f84c1b6232af9b947c3559f6fc5e
+    name: keycloak
+    urls:
+    - https://github.com/hyolim-e/keycloak-on-kubernetes/releases/download/keycloak-0.1.0/keycloak-0.1.0.tgz
+    version: 0.1.0
+  keycloak-operator:
+  - apiVersion: v2
+    appVersion: 26.0.1
+    created: "2026-01-21T14:09:47.571649785Z"
+    description: A Helm chart to deploy the official Keycloak Operator (Quarkus distribution)
+    digest: 8c7ae18a72b2eecebf2946f3f83a7a756b87a5ed708f5c3ab3d2ed0b59e489b5
+    name: keycloak-operator
+    urls:
+    - https://github.com/hyolim-e/keycloak-on-kubernetes/releases/download/keycloak-operator-0.1.0/keycloak-operator-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-01-21T14:09:47.57166276Z"
